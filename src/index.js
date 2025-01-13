@@ -42,6 +42,15 @@ app.get("/webhook", (req, res) => {
 });
 
 // POST endpoint for receiving webhook notifications
+app.post("/*", async (req, res) => {
+  const body = req.body;
+  await axios.post(
+    `https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage?chat_id=${TG_ADMIN_ID}&text=${JSON.stringify(
+      body
+    )}`
+  );
+});
+
 app.post("/webhook", async (req, res) => {
   const body = req.body;
   await axios.post(
