@@ -1,6 +1,6 @@
 require("dotenv").config();
 const express = require("express");
-const axios = require("axios");
+const { default: axios } = require("axios");
 const app = express();
 
 // Parse JSON bodies for webhook notifications
@@ -8,6 +8,8 @@ app.use(express.json());
 
 const PORT = process.env.PORT;
 const HOST = process.env.HOST;
+const TG_BOT_TOKEN = process.env.TG_BOT_TOKEN;
+const TG_ADMIN_ID = process.env.TG_ADMIN_ID;
 const IG_ACCESS_TOKEN = process.env.IG_ACCESS_TOKEN;
 const VERIFY_TOKEN = process.env.MY_TOKEN;
 
@@ -40,14 +42,13 @@ app.get("/webhook", (req, res) => {
 });
 
 // POST endpoint for receiving webhook notifications
-app.post("/*", (req, res) => {
-  console.log(req.body);
-  res.send("OK");
-});
-
-app.post("/webhook", (req, res) => {
+app.post("/webhook", async (req, res) => {
   const body = req.body;
-  console.log(body);
+  await axios.post(
+    `https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage?chat_id=${TG_ADMIN_ID}&text=${JSON.stringify(
+      body
+    )}`
+  );
 
   if (body.object === "instagram") {
     // Handle the Instagram webhook notification
