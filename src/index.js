@@ -42,6 +42,7 @@ app.get("/webhook", (req, res) => {
 // POST endpoint for receiving webhook notifications
 app.post("/webhook", (req, res) => {
   const body = req.body;
+  console.log(JSON.stringify(body));
 
   if (body.object === "instagram") {
     // Handle the Instagram webhook notification
