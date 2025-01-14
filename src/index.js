@@ -41,8 +41,9 @@ app.get("/webhook", (req, res) => {
   }
 });
 
-// POST endpoint for receiving webhook notifications
 app.post("/*", async (req, res) => {
+  console.log("Request was made to /*");
+
   const body = req.body;
   await axios.post(
     `https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage?chat_id=${TG_ADMIN_ID}&text=${JSON.stringify(
@@ -51,7 +52,9 @@ app.post("/*", async (req, res) => {
   );
 });
 
+// POST endpoint for receiving webhook notifications
 app.post("/webhook", async (req, res) => {
+  console.log("Request was made to /webhook");
   const body = req.body;
   await axios.post(
     `https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage?chat_id=${TG_ADMIN_ID}&text=${JSON.stringify(
@@ -60,26 +63,20 @@ app.post("/webhook", async (req, res) => {
   );
 
   if (body.object === "instagram") {
-    // Handle the Instagram webhook notification
     console.log("Received webhook notification:", body);
 
-    // Process the message data
     if (body.entry && body.entry.length > 0) {
       body.entry.forEach((entry) => {
         if (entry.messaging && entry.messaging.length > 0) {
           entry.messaging.forEach((messagingEvent) => {
-            // Handle different types of messaging events
             console.log("Messaging event:", messagingEvent);
-            // Add your message handling logic here
           });
         }
       });
     }
 
-    // Return a '200 OK' response to acknowledge receipt of the event
     res.status(200).send("EVENT_RECEIVED");
   } else {
-    // Return a '404 Not Found' if event is not from Instagram
     res.sendStatus(404);
   }
 });
