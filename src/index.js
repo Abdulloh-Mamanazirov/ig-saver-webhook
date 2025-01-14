@@ -41,20 +41,23 @@ app.get("/webhook", (req, res) => {
   }
 });
 
-app.post("/*", async (req, res) => {
-  console.log("Request was made to /*");
+// app.post("/*", async (req, res) => {
+//   console.log("Request was made to /*");
 
-  const body = req.body;
-  await axios.post(
-    `https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage?chat_id=${TG_ADMIN_ID}&text=${JSON.stringify(
-      body
-    )}`
-  );
-});
+//   const body = req.body;
+//   await axios.post(
+//     `https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage?chat_id=${TG_ADMIN_ID}&text=${JSON.stringify(
+//       body
+//     )}`
+//   );
+
+//   res.send("/* OK");
+// });
 
 // POST endpoint for receiving webhook notifications
 app.post("/webhook", async (req, res) => {
   console.log("Request was made to /webhook");
+
   const body = req.body;
   await axios.post(
     `https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage?chat_id=${TG_ADMIN_ID}&text=${JSON.stringify(
