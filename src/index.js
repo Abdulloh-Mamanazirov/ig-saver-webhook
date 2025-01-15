@@ -64,7 +64,15 @@ app.post("/webhook", async (req, res) => {
               const isEcho = event.message.is_echo;
 
               if (!isEcho) {
-                console.log("Received message from user:", body);
+                if (
+                  body.entry[0].messaging[0].message.attachments[0].type ===
+                  "ig_reel"
+                ) {
+                  console.log(
+                    "reel details:",
+                    body.entry[0].messaging[0].message
+                  );
+                }
 
                 try {
                   await sendMessageOnTgBot(
