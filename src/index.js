@@ -49,34 +49,111 @@ app.get("/webhook", (req, res) => {
 //   res.send("/* OK");
 // });
 
+// Send message back to the user
+async function sendInstagramMessage(recipientId, messageText) {
+  try {
+    const response = await axios({
+      method: "POST",
+      url: `https://graph.facebook.com/v18.0/me/messages`,
+      params: {
+        access_token: IG_ACCESS_TOKEN,
+      },
+      data: {
+        recipient: {
+          id: recipientId,
+        },
+        message: {
+          text: messageText,
+        },
+      },
+    });
+    console.log("Message sent successfully:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error sending message:", error.response?.data || error);
+    throw error;
+  }
+}
+
+async function sendMessageOnTgBot(chat_id, messageText) {
+  try {
+    await axios.post(
+      `https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage?chat_id=${chat_id}&text=${messageText}`
+    );
+  } catch (error) {
+    throw error;
+  }
+}
+
 // POST endpoint for receiving webhook notifications
 app.post("/webhook", async (req, res) => {
   console.log("Request was made to /webhook");
 
   const body = req.body;
-  await axios.post(
-    `https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage?chat_id=${TG_ADMIN_ID}&text=${JSON.stringify(
-      body
-    )}`
-  );
 
   if (body.object === "instagram") {
-    console.log("Received webhook notification:", body);
-
     if (body.entry && body.entry.length > 0) {
-      body.entry.forEach((entry) => {
+      for (const entry of body.entry) {
         if (entry.messaging && entry.messaging.length > 0) {
-          entry.messaging.forEach((messagingEvent) => {
-            console.log("Messaging event:", messagingEvent);
-          });
-        }
-      });
-    }
+          for (const event of entry.messaging) {
+            // Check if this is a message event
+            if (event.message) {
+              const senderId = event.sender.id;
+              const messageText = event.message.text;
+              const isEcho = event.message.is_echo;
 
+              if (!isEcho) {
+                console.log("Received message from user:", {
+                  senderId,
+                  messageText,
+                });
+
+                try {
+                  await sendMessageOnTgBot(
+                    TG_ADMIN_ID,
+                    `senderId:${senderId}, messageText:${messageText}`
+                  );
+                  // Example auto-reply
+                  await sendInstagramMessage(
+                    senderId,
+                    `Your message was received: "${messageText}". This is an automated response.`
+                  );
+                } catch (error) {
+                  console.error("Failed to send reply:", error);
+                }
+              } else {
+                console.log("Received echo of our message:", {
+                  senderId,
+                  messageText,
+                });
+              }
+            }
+          }
+        }
+      }
+    }
     res.status(200).send("EVENT_RECEIVED");
   } else {
     res.sendStatus(404);
   }
+
+  // if (body.object === "instagram") {
+  //   console.log("Received webhook notification:", body);
+
+  //   if (body.entry && body.entry.length > 0) {
+  //     body.entry.forEach((entry) => {
+  //       if (entry.messaging && entry.messaging.length > 0) {
+  //         entry.messaging.forEach((messagingEvent) => {
+  //           console.log("Messaging event:", messagingEvent);
+  //         });
+  //       }
+  //     });
+  //   }
+
+  //   res.status(200).send("EVENT_RECEIVED");
+  // } else {
+  //   res.sendStatus(404);
+  // }
 });
 
 // Send message to others on instagram
