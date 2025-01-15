@@ -85,7 +85,17 @@ app.post("/webhook", async (req, res) => {
                   console.error("Failed to send reply:", error);
                 }
               } else {
-                console.log("Received echo of our message:", body);
+                if (
+                  body.entry[0].messaging[0].message.attachments[0].type ===
+                  "ig_reel"
+                ) {
+                  console.log(
+                    "my reel details:",
+                    body.entry[0].messaging[0].message
+                  );
+                } else {
+                  console.log("Received echo of our message:", body);
+                }
               }
             }
           }
