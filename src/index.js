@@ -74,28 +74,28 @@ app.post("/webhook", async (req, res) => {
             // Check if this is a message event
             if (event.message) {
               const senderId = event.sender.id;
-              const messageText = event.message.text;
+              const messageText = event?.message?.text ?? "";
               const isEcho = event.message.is_echo;
 
               if (!isEcho) {
                 try {
                   if (
-                    body.entry[0].messaging[0].message.attachments[0].type ===
-                    "ig_reel"
+                    body?.entry[0]?.messaging[0]?.message?.attachments[0]
+                      ?.type === "ig_reel"
                   ) {
                     await sendVideoOnTgBot(
                       TG_ADMIN_ID,
                       body.entry[0].messaging[0].message.attachments[0].payload
-                        .url,
+                        ?.url,
                       body.entry[0].messaging[0].message.attachments[0].payload
-                        .title
+                        ?.title
                     );
                   } else {
                     await sendMessageOnTgBot(
                       TG_ADMIN_ID,
-                      `senderId:${senderId}, messageText:"${messageText}"\n\n ${JSON.stringify(
-                        body
-                      )}`
+                      `The message on Instagram was not a reel! ${
+                        messageText ?? "Message text: " + messageText
+                      }`
                     );
                   }
                 } catch (error) {
@@ -103,18 +103,24 @@ app.post("/webhook", async (req, res) => {
                 }
               } else {
                 if (
-                  body.entry[0].messaging[0].message.attachments[0].type ===
-                  "ig_reel"
+                  body?.entry[0]?.messaging[0]?.message?.attachments[0]
+                    ?.type === "ig_reel"
                 ) {
                   await sendVideoOnTgBot(
                     TG_ADMIN_ID,
                     body.entry[0].messaging[0].message.attachments[0].payload
-                      .url,
+                      ?.url,
                     body.entry[0].messaging[0].message.attachments[0].payload
-                      .title
+                      ?.title
                   );
                 } else {
-                  console.log("Received echo of our message:", body);
+                  await sendMessageOnTgBot(
+                    TG_ADMIN_ID,
+                    `The message on Instagram was not a reel! ${
+                      messageText ?? "Message text: " + messageText
+                    }`
+                  );
+                  console.log("not a reel Received echo of our message:", body);
                 }
               }
             }
