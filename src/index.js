@@ -54,7 +54,7 @@ async function sendInstagramMessage(recipientId, messageText) {
   try {
     const response = await axios({
       method: "POST",
-      url: `https://graph.facebook.com/v18.0/me/messages`,
+      url: `https://graph.facebook.com/v21.0/me/messages`,
       params: {
         access_token: IG_ACCESS_TOKEN,
       },
