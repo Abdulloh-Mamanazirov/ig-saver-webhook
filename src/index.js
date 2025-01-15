@@ -97,10 +97,6 @@ app.post("/webhook", async (req, res) => {
                     "my reel details:",
                     body.entry[0].messaging[0].message.payload
                   );
-                  console.log(
-                    "my reel details:",
-                    body.entry[0].messaging[1].message.payload
-                  );
                 } else {
                   console.log("Received echo of our message:", body);
                 }
