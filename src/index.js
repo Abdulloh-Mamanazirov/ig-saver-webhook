@@ -74,26 +74,26 @@ app.post("/webhook", async (req, res) => {
               const isEcho = event.message.is_echo;
 
               if (!isEcho) {
-                if (
-                  body.entry[0].messaging[0].message.attachments[0].type ===
-                  "ig_reel"
-                ) {
-                  await sendVideoOnTgBot(
-                    TG_ADMIN_ID,
-                    body.entry[0].messaging[0].message.attachments[0].payload
-                      .url,
-                    body.entry[0].messaging[0].message.attachments[0].payload
-                      .title
-                  );
-                }
-
                 try {
-                  await sendMessageOnTgBot(
-                    TG_ADMIN_ID,
-                    `senderId:${senderId}, messageText:"${messageText}"\n\n ${JSON.stringify(
-                      body
-                    )}`
-                  );
+                  if (
+                    body.entry[0].messaging[0].message.attachments[0].type ===
+                    "ig_reel"
+                  ) {
+                    await sendVideoOnTgBot(
+                      TG_ADMIN_ID,
+                      body.entry[0].messaging[0].message.attachments[0].payload
+                        .url,
+                      body.entry[0].messaging[0].message.attachments[0].payload
+                        .title
+                    );
+                  } else {
+                    await sendMessageOnTgBot(
+                      TG_ADMIN_ID,
+                      `senderId:${senderId}, messageText:"${messageText}"\n\n ${JSON.stringify(
+                        body
+                      )}`
+                    );
+                  }
                 } catch (error) {
                   console.error("Failed to send reply:", error);
                 }
