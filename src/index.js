@@ -40,6 +40,7 @@ app.get("/webhook", (req, res) => {
   }
 });
 
+// Send text messages on telegram bot
 async function sendMessageOnTgBot(chat_id, messageText) {
   try {
     await bot.sendMessage(chat_id, messageText);
@@ -48,6 +49,7 @@ async function sendMessageOnTgBot(chat_id, messageText) {
   }
 }
 
+// Send videos on telegram bot
 async function sendVideoOnTgBot(chat_id, video_url, caption) {
   try {
     await bot.sendVideo(chat_id, video_url, {
