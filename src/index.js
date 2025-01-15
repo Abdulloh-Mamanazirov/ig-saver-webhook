@@ -11,6 +11,7 @@ const HOST = process.env.HOST;
 const TG_BOT_TOKEN = process.env.TG_BOT_TOKEN;
 const TG_ADMIN_ID = process.env.TG_ADMIN_ID;
 const IG_ACCESS_TOKEN = process.env.IG_ACCESS_TOKEN;
+const IG_PAGE_ACCESS_TOKEN = process.env.IG_PAGE_ACCESS_TOKEN;
 const VERIFY_TOKEN = process.env.MY_TOKEN;
 
 app.get("/", async (req, res) => {
@@ -56,7 +57,7 @@ async function sendInstagramMessage(recipientId, messageText) {
       method: "POST",
       url: `https://graph.facebook.com/v21.0/me/messages`,
       params: {
-        access_token: IG_ACCESS_TOKEN,
+        access_token: IG_PAGE_ACCESS_TOKEN,
       },
       data: {
         recipient: {
