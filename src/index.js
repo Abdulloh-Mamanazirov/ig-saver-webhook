@@ -22,20 +22,15 @@ app.get("/", async (req, res) => {
 
 // GET endpoint for webhook verification
 app.get("/webhook", (req, res) => {
-  // Parse verification params from the request
   const mode = req.query["hub.mode"];
   const token = req.query["hub.verify_token"];
   const challenge = req.query["hub.challenge"];
 
-  // Check if a token and mode were sent
   if (mode && token) {
-    // Check the mode and token sent are correct
     if (mode === "subscribe" && token === VERIFY_TOKEN) {
-      // Respond with 200 OK and challenge token
       console.log("WEBHOOK_VERIFIED");
       res.status(200).send(challenge);
     } else {
-      // Respond with '403 Forbidden' if verify tokens do not match
       res.sendStatus(403);
     }
   }
@@ -82,6 +77,42 @@ app.post("/webhook", async (req, res) => {
   } else {
     res.sendStatus(404);
   }
+});
+
+// Send message to others on instagram
+app.get("/sendMessageOnIg", async (req, res) => {
+  const igUserID = req.query["userIgId"];
+  const recipientID = "47187471584"; //process.env.IG_ACC_ID
+  const textMessage = req.query["textMessage"];
+
+  const config = {
+    headers: {
+      Authorization: `Bearer ${IG_ACCESS_TOKEN}`,
+      "Content-Type": "application/json",
+    },
+  };
+
+  const data = {
+    recipient: {
+      id: recipientID,
+    },
+    message: {
+      text: textMessage,
+    },
+  };
+
+  axios
+    .post(
+      `https://graph.instagram.com/v21.0/${igUserID}/messages`,
+      data,
+      config
+    )
+    .then((response) => {
+      console.log("Message sent successfully:", response.data);
+    })
+    .catch((error) => {
+      console.error("Error sending message:", error.response);
+    });
 });
 
 app.listen(PORT, HOST, () => {
