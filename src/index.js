@@ -64,24 +64,20 @@ app.post("/webhook", async (req, res) => {
               const isEcho = event.message.is_echo;
 
               if (!isEcho) {
-                console.log("Received message from user:", {
-                  senderId,
-                  messageText,
-                });
+                console.log("Received message from user:", body);
 
                 try {
                   await sendMessageOnTgBot(
                     TG_ADMIN_ID,
-                    `senderId:${senderId}, messageText:${messageText}`
+                    `senderId:${senderId}, messageText:"${messageText}"\n\n ${JSON.stringify(
+                      body
+                    )}`
                   );
                 } catch (error) {
                   console.error("Failed to send reply:", error);
                 }
               } else {
-                console.log("Received echo of our message:", {
-                  senderId,
-                  messageText,
-                });
+                console.log("Received echo of our message:", body);
               }
             }
           }
