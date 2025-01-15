@@ -1,10 +1,8 @@
 require("dotenv").config();
 const express = require("express");
 const { default: axios } = require("axios");
+const TelegramBot = require("node-telegram-bot-api");
 const app = express();
-
-// Parse JSON bodies for webhook notifications
-app.use(express.json());
 
 const PORT = process.env.PORT;
 const HOST = process.env.HOST;
@@ -12,6 +10,12 @@ const TG_BOT_TOKEN = process.env.TG_BOT_TOKEN;
 const TG_ADMIN_ID = process.env.TG_ADMIN_ID;
 const IG_ACCESS_TOKEN = process.env.IG_ACCESS_TOKEN;
 const VERIFY_TOKEN = process.env.MY_TOKEN;
+
+// Set up Telegram Bot
+const bot = new TelegramBot(TG_BOT_TOKEN, { polling: true });
+
+// Parse JSON bodies for webhook notifications
+app.use(express.json());
 
 app.get("/", async (req, res) => {
   const { data } = await axios.get(
@@ -38,9 +42,7 @@ app.get("/webhook", (req, res) => {
 
 async function sendMessageOnTgBot(chat_id, messageText) {
   try {
-    await axios.post(
-      `https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage?chat_id=${chat_id}&text=${messageText}`
-    );
+    await bot.sendMessage(chat_id, messageText);
   } catch (error) {
     throw error;
   }
@@ -48,9 +50,9 @@ async function sendMessageOnTgBot(chat_id, messageText) {
 
 async function sendVideoOnTgBot(chat_id, video_url, caption) {
   try {
-    await axios.post(
-      `https://api.telegram.org/bot${TG_BOT_TOKEN}/sendVideo?chat_id=${chat_id}&video=${video_url}&caption=${"caption"}`
-    );
+    await bot.sendVideo(chat_id, video_url, {
+      caption: caption,
+    });
   } catch (error) {
     throw error;
   }
@@ -102,13 +104,12 @@ app.post("/webhook", async (req, res) => {
                   body.entry[0].messaging[0].message.attachments[0].type ===
                   "ig_reel"
                 ) {
-                  console.log(
-                    "my reel details:",
-                    body.entry[0].messaging[0].message
-                  );
-                  console.log(
-                    "my reel details:",
+                  await sendVideoOnTgBot(
+                    TG_ADMIN_ID,
                     body.entry[0].messaging[0].message.attachments[0].payload
+                      .url,
+                    body.entry[0].messaging[0].message.attachments[0].payload
+                      .title
                   );
                 } else {
                   console.log("Received echo of our message:", body);
