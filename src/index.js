@@ -46,6 +46,16 @@ async function sendMessageOnTgBot(chat_id, messageText) {
   }
 }
 
+async function sendVideoOnTgBot(chat_id, video_url, caption) {
+  try {
+    await axios.post(
+      `https://api.telegram.org/bot${TG_BOT_TOKEN}/sendVideo?chat_id=${chat_id}&video=${video_url}&caption=${caption}`
+    );
+  } catch (error) {
+    throw error;
+  }
+}
+
 // POST endpoint for receiving webhook notifications
 app.post("/webhook", async (req, res) => {
   console.log("Request was made to /webhook");
@@ -68,9 +78,12 @@ app.post("/webhook", async (req, res) => {
                   body.entry[0].messaging[0].message.attachments[0].type ===
                   "ig_reel"
                 ) {
-                  console.log(
-                    "reel details:",
-                    body.entry[0].messaging[0].message
+                  await sendVideoOnTgBot(
+                    TG_ADMIN_ID,
+                    body.entry[0].messaging[0].message.attachments[0].payload
+                      .url,
+                    body.entry[0].messaging[0].message.attachments[0].payload
+                      .title
                   );
                 }
 
