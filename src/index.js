@@ -49,7 +49,7 @@ async function sendMessageOnTgBot(chat_id, messageText) {
 async function sendVideoOnTgBot(chat_id, video_url, caption) {
   try {
     await axios.post(
-      `https://api.telegram.org/bot${TG_BOT_TOKEN}/sendVideo?chat_id=${chat_id}&video=${video_url}&caption=${caption}`
+      `https://api.telegram.org/bot${TG_BOT_TOKEN}/sendVideo?chat_id=${chat_id}&video=${video_url}&caption=${"caption"}`
     );
   } catch (error) {
     throw error;
