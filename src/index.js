@@ -80,15 +80,15 @@ app.post("/webhook", async (req, res) => {
               if (!isEcho) {
                 try {
                   if (
-                    body?.entry[0]?.messaging[0]?.message?.attachments[0]
+                    body?.entry?.[0]?.messaging?.[0]?.message?.attachments?.[0]
                       ?.type === "ig_reel"
                   ) {
                     await sendVideoOnTgBot(
                       TG_ADMIN_ID,
-                      body.entry[0].messaging[0].message.attachments[0].payload
-                        ?.url,
-                      body.entry[0].messaging[0].message.attachments[0].payload
-                        ?.title
+                      body.entry?.[0].messaging?.[0].message.attachments?.[0]
+                        .payload?.url,
+                      body.entry?.[0].messaging?.[0].message.attachments?.[0]
+                        .payload?.title
                     );
                   } else {
                     await sendMessageOnTgBot(
@@ -104,14 +104,14 @@ app.post("/webhook", async (req, res) => {
               }
               // else {
               //   if (
-              //     body?.entry[0]?.messaging[0]?.message?.attachments[0]
+              //     body?.entry?.[0]?.messaging?.[0]?.message?.attachments?.[0]
               //       ?.type === "ig_reel"
               //   ) {
               //     await sendVideoOnTgBot(
               //       TG_ADMIN_ID,
-              //       body.entry[0].messaging[0].message.attachments[0].payload
+              //       body.entry?.[0].messaging?.[0].message.attachments?.[0].payload
               //         ?.url,
-              //       body.entry[0].messaging[0].message.attachments[0].payload
+              //       body.entry?.[0].messaging?.[0].message.attachments?.[0].payload
               //         ?.title
               //     );
               //   } else {
