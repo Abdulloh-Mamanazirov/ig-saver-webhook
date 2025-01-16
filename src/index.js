@@ -65,6 +65,7 @@ app.post("/webhook", async (req, res) => {
   console.log("Request was made to /webhook");
 
   const body = req.body;
+  console.log(body);
 
   if (body.object === "instagram") {
     if (body.entry && body.entry.length > 0) {
