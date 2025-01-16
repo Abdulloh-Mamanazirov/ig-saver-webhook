@@ -65,6 +65,8 @@ app.post("/webhook", async (req, res) => {
   console.log("Request was made to /webhook");
 
   const body = req.body;
+  console.log("body", body);
+  console.log("entry", body?.entry);
   console.log("messaging", body?.entry?.[0]?.messaging);
   console.log(
     "messaging -> message",
