@@ -101,28 +101,29 @@ app.post("/webhook", async (req, res) => {
                 } catch (error) {
                   console.error("Failed to send reply:", error);
                 }
-              } else {
-                if (
-                  body?.entry[0]?.messaging[0]?.message?.attachments[0]
-                    ?.type === "ig_reel"
-                ) {
-                  await sendVideoOnTgBot(
-                    TG_ADMIN_ID,
-                    body.entry[0].messaging[0].message.attachments[0].payload
-                      ?.url,
-                    body.entry[0].messaging[0].message.attachments[0].payload
-                      ?.title
-                  );
-                } else {
-                  await sendMessageOnTgBot(
-                    TG_ADMIN_ID,
-                    `The message on Instagram was not a reel! ${
-                      messageText ?? "Message text: " + messageText
-                    }`
-                  );
-                  console.log("not a reel Received echo of our message:", body);
-                }
               }
+              // else {
+              //   if (
+              //     body?.entry[0]?.messaging[0]?.message?.attachments[0]
+              //       ?.type === "ig_reel"
+              //   ) {
+              //     await sendVideoOnTgBot(
+              //       TG_ADMIN_ID,
+              //       body.entry[0].messaging[0].message.attachments[0].payload
+              //         ?.url,
+              //       body.entry[0].messaging[0].message.attachments[0].payload
+              //         ?.title
+              //     );
+              //   } else {
+              //     await sendMessageOnTgBot(
+              //       TG_ADMIN_ID,
+              //       `The message on Instagram was not a reel! ${
+              //         messageText ?? "Message text: " + messageText
+              //       }`
+              //     );
+              //     console.log("not a reel Received echo of our message:", body);
+              //   }
+              // }
             }
           }
         }
