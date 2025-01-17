@@ -88,6 +88,7 @@ async function sendMessageOnTgBot(chat_id, messageText) {
   try {
     await bot.sendMessage(chat_id, messageText);
   } catch (error) {
+    console.log(error);
     throw error;
   }
 }
@@ -99,6 +100,7 @@ async function sendVideoOnTgBot(chat_id, video_url, caption) {
       caption: caption,
     });
   } catch (error) {
+    console.log(error);
     throw error;
   }
 }
@@ -122,10 +124,7 @@ app.post("/webhook", async (req, res) => {
         );
 
         if (response.rows.length === 0) {
-          await sendMessageOnTgBot(
-            response.rows[0].tg_id,
-            "There is no such valid token! Check for any mistakes and send only the token without any other words included."
-          );
+          return;
         } else if (response.rows.length > 0 && !response.rows[0].is_verified) {
           await dbClient.query(
             "UPDATE users SET is_verified = true, ig_id = $1 WHERE token = $2",
@@ -156,6 +155,9 @@ app.post("/webhook", async (req, res) => {
                   "SELECT tg_id, is_verified FROM users WHERE ig_id = $1",
                   [senderId]
                 );
+                if (user.rows.length === 0) {
+                  return;
+                }
                 const user_is_verified = user.rows[0].is_verified;
                 const user_tg_id = user.rows[0].tg_id;
 
@@ -167,9 +169,9 @@ app.post("/webhook", async (req, res) => {
                     ) {
                       await sendVideoOnTgBot(
                         user_tg_id,
-                        body.entry?.[0].messaging?.[0].message.attachments?.[0]
+                        body.entry?.[0].messaging?.[0].message?.attachments?.[0]
                           .payload?.url,
-                        body.entry?.[0].messaging?.[0].message.attachments?.[0]
+                        body.entry?.[0].messaging?.[0].message?.attachments?.[0]
                           .payload?.title
                       );
                     } else {
