@@ -1,6 +1,6 @@
 require("dotenv").config();
 const express = require("express");
-const TelegramBot = require("node-telegram-bot-api");
+const { Telegraf } = require("telegraf");
 const { v4: uuid, validate } = require("uuid");
 const { default: axios } = require("axios");
 const { dbClient } = require("./utils");
@@ -22,13 +22,16 @@ dbClient
   .catch((err) => console.error("Database connection error:", err));
 
 // Set up Telegram Bot
-const bot = new TelegramBot(TG_BOT_TOKEN);
+const bot = new Telegraf(TG_BOT_TOKEN);
 
-bot.onText(/\/start/, async (msg, _) => {
-  console.log("bot received /start");
+bot
+  .launch(() => console.log("Bot launched"))
+  .then(() => console.log("Bot launched"))
+  .catch((err) => console.error("Bot launch error:", err));
 
-  const chatId = msg.chat.id;
-  const name = msg.chat.first_name;
+bot.start(async (ctx) => {
+  const chatId = +ctx.from.id;
+  const name = ctx.from.first_name;
 
   const foundUser = await dbClient.query(
     "SELECT id, is_verified, token from users WHERE tg_id = $1",
@@ -42,24 +45,21 @@ bot.onText(/\/start/, async (msg, _) => {
       uuidToken,
     ]);
 
-    return bot.sendMessage(
-      chatId,
-      `<p>Hello ${name}, to use this bot, connect your Instagram profile with it. To connect, copy the unique token below and send it to this <a href="https://www.instagram.com/${IG_ACC_USERNAME}/">Instagram profile</a>. \n<pre>${uuidToken}</pre></p>`,
+    return ctx.reply(
+      `Hello ${name}, to use this bot, connect your Instagram profile with it. To connect, copy the unique token below and send it to this <a href="https://www.instagram.com/${IG_ACC_USERNAME}/">Instagram profile</a>. \n<pre>${uuidToken}</pre>`,
       {
         parse_mode: "HTML",
       }
     );
   } else if (foundUser.rows.length > 0 && !foundUser.rows[0].is_verified) {
-    return bot.sendMessage(
-      chatId,
-      `<p>Hello ${name}, to use this bot, connect your Instagram profile with it. To connect, copy the unique token below and send it to this <a href="https://www.instagram.com/${IG_ACC_USERNAME}/">Instagram profile</a>. \n<pre>${foundUser.rows[0].token}</pre></p>`,
+    return ctx.reply(
+      `Hello ${name}, to use this bot, connect your Instagram profile with it. To connect, copy the unique token below and send it to this <a href="https://www.instagram.com/${IG_ACC_USERNAME}/">Instagram profile</a>. \n<pre>${foundUser.rows[0].token}</pre>`,
       {
         parse_mode: "HTML",
       }
     );
   } else {
-    return bot.sendMessage(
-      chatId,
+    return ctx.reply(
       `Hello ${name}, to know more about how to use this bot, send the /manual command.`
     );
   }
@@ -94,7 +94,7 @@ app.get("/webhook", (req, res) => {
 // Send text messages on telegram bot
 async function sendMessageOnTgBot(chat_id, messageText) {
   try {
-    await bot.sendMessage(chat_id, messageText);
+    await bot.telegram.sendMessage(chat_id, messageText);
   } catch (error) {
     console.log(error);
     throw error;
@@ -104,7 +104,7 @@ async function sendMessageOnTgBot(chat_id, messageText) {
 // Send videos on telegram bot
 async function sendVideoOnTgBot(chat_id, video_url, caption) {
   try {
-    await bot.sendVideo(chat_id, video_url, {
+    await bot.telegram.sendVideo(chat_id, video_url, {
       caption: caption,
     });
   } catch (error) {
