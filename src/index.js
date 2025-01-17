@@ -25,6 +25,8 @@ dbClient
 const bot = new TelegramBot(TG_BOT_TOKEN);
 
 bot.onText(/\/start/, async (msg, _) => {
+  console.log("bot received /start");
+
   const chatId = msg.chat.id;
   const name = msg.chat.first_name;
 
@@ -118,16 +120,25 @@ app.post("/webhook", async (req, res) => {
   const body = req.body;
 
   if (body.object === "instagram") {
+    console.log("1 step: entered body object");
+
     const senderId = body?.entry?.[0]?.messaging?.[0]?.sender?.id;
     const msgText =
       body?.entry?.[0]?.messaging?.[0]?.message?.text?.trim() ?? "";
 
-    if (validate(msgText)) {
+    if (
+      body?.entry?.[0]?.messaging?.[0]?.message?.attachments?.[0]?.type !==
+        "ig_reel" &&
+      validate(msgText)
+    ) {
+      console.log("2 step: start validation");
+
       try {
         const response = await dbClient.query(
           "SELECT tg_id, is_verified FROM users WHERE token = $1",
           [msgText]
         );
+        console.log("3 step: get the user if the uuid is valid");
 
         if (response.rows.length === 0) {
           return;
@@ -157,10 +168,15 @@ app.post("/webhook", async (req, res) => {
               const isEcho = event.message.is_echo;
 
               if (!isEcho) {
+                console.log("4 step:enter if not echo");
+
                 const user = await dbClient.query(
                   "SELECT tg_id, is_verified FROM users WHERE ig_id = $1",
                   [senderId]
                 );
+
+                console.log("5 step: get the user", user);
+
                 if (user.rows.length === 0) {
                   return;
                 }
