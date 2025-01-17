@@ -16,7 +16,7 @@ const IG_ACC_USERNAME = process.env.IG_ACC_USERNAME;
 const VERIFY_TOKEN = process.env.MY_TOKEN;
 
 // Set up Telegram Bot
-const bot = new TelegramBot(TG_BOT_TOKEN, { polling: true });
+const bot = new TelegramBot(TG_BOT_TOKEN);
 
 bot.onText(/\/start/, async (msg, _) => {
   const chatId = msg.chat.id;
