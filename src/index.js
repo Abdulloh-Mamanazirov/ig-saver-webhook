@@ -142,10 +142,7 @@ app.post("/webhook", async (req, res) => {
         );
 
         if (response.rows.length === 0) {
-          await sendMessageOnTgBot(
-            response.rows[0].tg_id,
-            "This token is not valid!"
-          );
+          return;
         } else if (response.rows.length > 0 && response.rows[0].is_verified) {
           await sendMessageOnTgBot(
             response.rows[0].tg_id,
