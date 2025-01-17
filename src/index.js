@@ -38,6 +38,12 @@ bot.start(async (ctx) => {
     [chatId]
   );
 
+  if (foundUser.rows.length > 0 && foundUser.rows[0].is_verified) {
+    return ctx.reply(
+      `Hello ${name}, you are all set! To know more about how to use this bot, send the /manual command.`
+    );
+  }
+
   if (foundUser.rows.length === 0) {
     const uuidToken = uuid();
     await dbClient.query("INSERT INTO users (tg_id, token) VALUES ($1, $2)", [
@@ -120,8 +126,6 @@ app.post("/webhook", async (req, res) => {
   const body = req.body;
 
   if (body.object === "instagram") {
-    console.log("1 step: entered body object");
-
     const senderId = body?.entry?.[0]?.messaging?.[0]?.sender?.id;
     const msgText =
       body?.entry?.[0]?.messaging?.[0]?.message?.text?.trim() ?? "";
@@ -131,17 +135,22 @@ app.post("/webhook", async (req, res) => {
         "ig_reel" &&
       validate(msgText)
     ) {
-      console.log("2 step: start validation");
-
       try {
         const response = await dbClient.query(
           "SELECT tg_id, is_verified FROM users WHERE token = $1",
           [msgText]
         );
-        console.log("3 step: get the user if the uuid is valid");
 
         if (response.rows.length === 0) {
-          return;
+          await sendMessageOnTgBot(
+            response.rows[0].tg_id,
+            "This token is not valid!"
+          );
+        } else if (response.rows.length > 0 && response.rows[0].is_verified) {
+          await sendMessageOnTgBot(
+            response.rows[0].tg_id,
+            "This token was already used for activation!"
+          );
         } else if (response.rows.length > 0 && !response.rows[0].is_verified) {
           await dbClient.query(
             "UPDATE users SET is_verified = true, ig_id = $1 WHERE token = $2",
@@ -168,14 +177,10 @@ app.post("/webhook", async (req, res) => {
               const isEcho = event.message.is_echo;
 
               if (!isEcho) {
-                console.log("4 step:enter if not echo");
-
                 const user = await dbClient.query(
                   "SELECT tg_id, is_verified FROM users WHERE ig_id = $1",
                   [senderId]
                 );
-
-                console.log("5 step: get the user", user);
 
                 if (user.rows.length === 0) {
                   return;
