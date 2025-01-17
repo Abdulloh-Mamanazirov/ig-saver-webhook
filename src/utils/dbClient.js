@@ -1,5 +1,4 @@
 require("dotenv").config();
-const path = require("path");
 const { Client } = require("pg");
 
 const DB_URL = process.env.DATABASE_URL;
@@ -10,9 +9,9 @@ const dbClient = new Client({
 
 dbClient
   .connect()
-  .then(() => console.log("Connected to database", path.dirname()))
+  .then(() => console.log("Connected to database"))
   .catch((err) =>
-    console.error("Database connection error:", path.dirname(), err)
+    console.error("Database connection error:", err)
   );
 
 module.exports = { dbClient };
