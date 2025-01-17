@@ -15,6 +15,12 @@ const IG_ACCESS_TOKEN = process.env.IG_ACCESS_TOKEN;
 const IG_ACC_USERNAME = process.env.IG_ACC_USERNAME;
 const VERIFY_TOKEN = process.env.MY_TOKEN;
 
+// Start db connection
+dbClient
+  .connect()
+  .then(() => console.log("Connected to database"))
+  .catch((err) => console.error("Database connection error:", err));
+
 // Set up Telegram Bot
 const bot = new TelegramBot(TG_BOT_TOKEN);
 
