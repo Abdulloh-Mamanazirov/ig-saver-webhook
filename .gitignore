@@ -1,3 +1,4 @@
 node_modules
 .env
 commented_codes.txt
+db-scheme.sql
