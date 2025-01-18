@@ -110,7 +110,7 @@ async function sendMessageOnTgBot(chat_id, messageText) {
 // Send videos on telegram bot
 async function sendVideoOnTgBot(chat_id, video_url, caption) {
   try {
-    if (caption.length > 1000) caption = caption.slice(0, 1000);
+    if (caption?.length > 1000) caption = caption.slice(0, 1000);
 
     await bot.telegram.sendVideo(chat_id, video_url, {
       caption: caption,
