@@ -110,6 +110,8 @@ async function sendMessageOnTgBot(chat_id, messageText) {
 // Send videos on telegram bot
 async function sendVideoOnTgBot(chat_id, video_url, caption) {
   try {
+    if (caption.length > 1000) caption = caption.slice(0, 1000);
+
     await bot.telegram.sendVideo(chat_id, video_url, {
       caption: caption,
     });
@@ -130,11 +132,7 @@ app.post("/webhook", async (req, res) => {
     const msgText =
       body?.entry?.[0]?.messaging?.[0]?.message?.text?.trim() ?? "";
 
-    if (
-      body?.entry?.[0]?.messaging?.[0]?.message?.attachments?.[0]?.type !==
-        "ig_reel" &&
-      validate(msgText)
-    ) {
+    if (validate(msgText)) {
       try {
         const response = await dbClient.query(
           "SELECT tg_id, is_verified FROM users WHERE token = $1",
@@ -162,82 +160,90 @@ app.post("/webhook", async (req, res) => {
         console.log("Error in validation: ", error);
         res.sendStatus(404);
       }
-    }
+    } else {
+      if (body.entry && body.entry.length > 0) {
+        for (const entry of body.entry) {
+          if (entry.messaging && entry.messaging.length > 0) {
+            for (const event of entry.messaging) {
+              // Check if this is a message event
+              if (event.message) {
+                const messageText = event?.message?.text?.trim() ?? "";
+                const isEcho = event.message.is_echo;
 
-    if (body.entry && body.entry.length > 0) {
-      for (const entry of body.entry) {
-        if (entry.messaging && entry.messaging.length > 0) {
-          for (const event of entry.messaging) {
-            // Check if this is a message event
-            if (event.message) {
-              const messageText = event?.message?.text?.trim() ?? "";
-              const isEcho = event.message.is_echo;
+                if (!isEcho) {
+                  const user = await dbClient.query(
+                    "SELECT tg_id, is_verified FROM users WHERE ig_id = $1",
+                    [senderId]
+                  );
 
-              if (!isEcho) {
-                const user = await dbClient.query(
-                  "SELECT tg_id, is_verified FROM users WHERE ig_id = $1",
-                  [senderId]
-                );
+                  if (user.rows.length === 0) {
+                    return;
+                  }
+                  const user_is_verified = user.rows[0].is_verified;
+                  const user_tg_id = user.rows[0].tg_id;
 
-                if (user.rows.length === 0) {
-                  return;
-                }
-                const user_is_verified = user.rows[0].is_verified;
-                const user_tg_id = user.rows[0].tg_id;
-
-                if (user_is_verified) {
-                  try {
-                    if (
-                      body?.entry?.[0]?.messaging?.[0]?.message
-                        ?.attachments?.[0]?.type === "ig_reel"
-                    ) {
-                      await sendVideoOnTgBot(
-                        user_tg_id,
-                        body.entry?.[0].messaging?.[0].message?.attachments?.[0]
-                          .payload?.url,
-                        body.entry?.[0].messaging?.[0].message?.attachments?.[0]
-                          .payload?.title
-                      );
-                    } else {
-                      await sendMessageOnTgBot(
-                        user_tg_id,
-                        `The message on Instagram was not a reel! ${
-                          messageText ?? "Message text: " + messageText
-                        }`
-                      );
+                  if (user_is_verified) {
+                    try {
+                      if (
+                        body?.entry?.[0]?.messaging?.[0]?.message
+                          ?.attachments?.[0]?.type === "ig_reel"
+                      ) {
+                        await sendVideoOnTgBot(
+                          user_tg_id,
+                          body.entry?.[0].messaging?.[0]?.message
+                            ?.attachments?.[0].payload?.url,
+                          body.entry?.[0].messaging?.[0]?.message
+                            ?.attachments?.[0].payload?.title
+                        ).catch(async () => {
+                          await sendMessageOnTgBot(
+                            user_tg_id,
+                            "Failed to load the content from Instagram. \nVideo title on Instagram: \n" +
+                              body.entry?.[0].messaging?.[0]?.message
+                                ?.attachments?.[0].payload?.title
+                          );
+                        });
+                      } else {
+                        await sendMessageOnTgBot(
+                          user_tg_id,
+                          `The message on Instagram was not a reel! ${
+                            messageText ?? "Message text: " + messageText
+                          }`
+                        );
+                      }
+                    } catch (error) {
+                      console.error("Failed to send reply:", error);
                     }
-                  } catch (error) {
-                    console.error("Failed to send reply:", error);
                   }
                 }
+                // else {
+                //   if (
+                //     body?.entry?.[0]?.messaging?.[0]?.message?.attachments?.[0]
+                //       ?.type === "ig_reel"
+                //   ) {
+                //     await sendVideoOnTgBot(
+                //       TG_ADMIN_ID,
+                //       body.entry?.[0].messaging?.[0].message.attachments?.[0].payload
+                //         ?.url,
+                //       body.entry?.[0].messaging?.[0].message.attachments?.[0].payload
+                //         ?.title
+                //     );
+                //   } else {
+                //     await sendMessageOnTgBot(
+                //       TG_ADMIN_ID,
+                //       `The message on Instagram was not a reel! ${
+                //         messageText ?? "Message text: " + messageText
+                //       }`
+                //     );
+                //     console.log("not a reel Received echo of our message:", body);
+                //   }
+                // }
               }
-              // else {
-              //   if (
-              //     body?.entry?.[0]?.messaging?.[0]?.message?.attachments?.[0]
-              //       ?.type === "ig_reel"
-              //   ) {
-              //     await sendVideoOnTgBot(
-              //       TG_ADMIN_ID,
-              //       body.entry?.[0].messaging?.[0].message.attachments?.[0].payload
-              //         ?.url,
-              //       body.entry?.[0].messaging?.[0].message.attachments?.[0].payload
-              //         ?.title
-              //     );
-              //   } else {
-              //     await sendMessageOnTgBot(
-              //       TG_ADMIN_ID,
-              //       `The message on Instagram was not a reel! ${
-              //         messageText ?? "Message text: " + messageText
-              //       }`
-              //     );
-              //     console.log("not a reel Received echo of our message:", body);
-              //   }
-              // }
             }
           }
         }
       }
     }
+
     res.status(200).send("EVENT_RECEIVED");
   } else {
     res.sendStatus(404);
